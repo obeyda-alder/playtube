@@ -275,6 +275,7 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
                                         <?php } ?></th>
 		                        	<th>User</th>
 		                        	<th>Wallet</th>
+		                        	<th>Status</th>
 		                        	<th>Spent 
                                         <?php if (!empty($_GET['sort']) && $_GET['sort'] == 'DESC_s') { ?>
                                             <svg onclick="location.href = '<?php echo(PT_LoadAdminLinkSettings('manage-user-ads?page-id=1').$sort_link."&sort=ASC_s") ?>'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#000000" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up cursor-p"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
@@ -315,6 +316,7 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
 	                                	$ad_owner = PT_UserData($pt->user_ad->user_id);
 	                                	echo PT_LoadAdminPage('manage-user-ads/list',array(
 	                                		'AD_ID' => $pt->user_ad->id,
+                                            'STATUS' => $pt->user_ad->status,
 	                                		'AD_WEBSITE' => pt_url_domain(urldecode($pt->user_ad->url)),
 	                                		'AD_TITLE' => PT_ShortText($pt->user_ad->headline),
 	                                		'AD_URL' => urldecode($pt->user_ad->url),
@@ -392,6 +394,7 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
         <div class="clearfix"></div>
     </div>
 </div>
+
 <style>
 	.acp-usrads-pagination{
 		width: 100%;
@@ -406,6 +409,7 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
 		padding: 5px 0px;
 	}
 </style>
+
 <div class="modal fade" id="SelectedDeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -425,6 +429,7 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -440,6 +445,26 @@ if (($pt->page_number > $db->totalPages) && !empty($_GET['page-id'])) {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ApprovedModal" tabindex="-1" role="dialog" aria-labelledby="exampleModal1Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModal1Label">Approved Ad?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to approved this ad?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal">Approved</button>
             </div>
         </div>
     </div>
@@ -557,54 +582,71 @@ jQuery(document).ready(function($) {
     colors.warning = '#' + fullColorHex(colors.warning[0], colors.warning[1], colors.warning[2]);
 });
 
-function DeleteUserAd(id,type = 'show') {
-  if (!id) {
-      return false;
-  }
-  if (type == 'hide') {
-    $('#DeleteModal').find('.btn-primary').attr('onclick', "DeleteUserAd('"+id+"')");
-    $('#DeleteModal').modal('show');
-    return false;
-  }
-  $.post('{{LINK aj/ap/delete-user-ad}}', {id: id}, function(data, textStatus, xhr) {
-        if (data.status == 200) {
-            $('#list-'+id).slideUp('slow');
-            setTimeout(function () {
-                $('#list-'+id).remove();
-            },2000);
+    function DeleteUserAd(id, type = 'show') {
+        if (!id) {
+            return false;
         }
-    });
-}
-$('.check-all').on('click', function(event) {
-    $('input:checkbox').not(this).prop('checked', this.checked);
-});
-$('.delete-checkbox, .check-all').change(function(event) {
-    $('.delete-selected').attr('disabled', false);
-    $('.delete-selected').find('span').text(' (' + $('.delete-checkbox:checked').length + ')');
-});
-$('.submit-selected').on('click', function(event) {
-    event.preventDefault();
-    $('#SelectedStatusModal').modal('show');
-});
-
-$('.delete-selected').on('click', function(event) {
-    event.preventDefault();
-    $('#SelectedDeleteModal').modal('show');
-});
-function DeleteSelected() {
-    data = new Array();
-    $('td input:checked').parents('tr').each(function () {
-        data.push($(this).attr('data_selected'));
-    });
-    $('.delete-selected').attr('disabled', true);
-    $('.delete-selected').text('Please wait..');
-    $.post("{{LINK aj/ap/remove_multi_user_ad}}", {ids: data}, function () {
-        $.each( data, function( index, value ){
-            $('#list-' + value).remove();
+        if (type == 'hide') {
+            $('#DeleteModal').find('.btn-primary').attr('onclick', "DeleteUserAd('"+id+"')");
+            $('#DeleteModal').modal('show');
+            return false;
+        }
+        $.post('{{LINK aj/ap/delete-user-ad}}', {id: id}, function(data, textStatus, xhr) {
+                if (data.status == 200) {
+                    $('#list-'+id).slideUp('slow');
+                    setTimeout(function () {
+                        $('#list-'+id).remove();
+                    },2000);
+                }
         });
-        $('.delete-selected').text('Delete Selected');
+    }
+
+    function ApprovedUserAd(id, status , type = 'show') {
+        if (!id) {
+            return false;
+        }
+        if (type == 'hide') {
+            $('#ApprovedModal').find('.btn-success').attr('onclick', "ApprovedUserAd('"+ id +"', '"+ status +"')");
+            $('#ApprovedModal').modal('show');
+            return false;
+        }
+        $.post('{{LINK aj/ap/approve-user-ad}}', {id: id, status: status }, function(data, textStatus, xhr) {
+            if (data.status == 200) {
+                location.reload();
+            }
+        });
+    }
+
+    $('.check-all').on('click', function(event) {
+        $('input:checkbox').not(this).prop('checked', this.checked);
     });
-}
+    $('.delete-checkbox, .check-all').change(function(event) {
+        $('.delete-selected').attr('disabled', false);
+        $('.delete-selected').find('span').text(' (' + $('.delete-checkbox:checked').length + ')');
+    });
+    $('.submit-selected').on('click', function(event) {
+        event.preventDefault();
+        $('#SelectedStatusModal').modal('show');
+    });
+    $('.delete-selected').on('click', function(event) {
+        event.preventDefault();
+        $('#SelectedDeleteModal').modal('show');
+    });
+
+    function DeleteSelected() {
+        data = new Array();
+        $('td input:checked').parents('tr').each(function () {
+            data.push($(this).attr('data_selected'));
+        });
+        $('.delete-selected').attr('disabled', true);
+        $('.delete-selected').text('Please wait..');
+        $.post("{{LINK aj/ap/remove_multi_user_ad}}", {ids: data}, function () {
+            $.each( data, function( index, value ){
+                $('#list-' + value).remove();
+            });
+            $('.delete-selected').text('Delete Selected');
+        });
+    }
 
 	function PT_ManageVRequests(id,self) {
 		$("#view_info_"+id).slideToggle( "fast", function() {

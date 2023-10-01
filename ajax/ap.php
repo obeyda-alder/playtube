@@ -1,6 +1,7 @@
 <?php
 use Aws\S3\S3Client;
 use Google\Cloud\Storage\StorageClient;
+
 if (IS_LOGGED == false) {
     $data = array(
         'status' => 400,
@@ -10,6 +11,7 @@ if (IS_LOGGED == false) {
     echo json_encode($data);
     exit();
 }
+
 if (PT_IsAdmin() == false && !in_array($pt->user->admin, array(1,2,3))) {
     $data = array(
         'status' => 400,
@@ -45,6 +47,7 @@ if ($first == 'uploadFiles') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'search_in_pages') {
     $keyword = PT_Secure($_POST['keyword']);
     $html = '';
@@ -134,6 +137,7 @@ if ($first == 'permission') {
         exit();
     }
 }
+
 if ($first == 'update_moderator_permission') {
     if (!empty($_GET['permission']) && !empty($_GET['user_id']) && is_numeric($_GET['user_id']) && $_GET['user_id'] > 0 && in_array($_GET['permission_val'], array(
         0,
@@ -169,8 +173,6 @@ if ($first == 'update_moderator_permission') {
     echo json_encode($data);
     exit();
 }
-
-
 
 if ($first == 'save-settings') {
     $submit_data = array();
@@ -372,8 +374,6 @@ if ($first == 'delete-user') {
     }
 }
 
-
-
 if ($first == 'delete-video') {
     if (!empty($_POST['id'])) {
         $get_video = $db->where('id', PT_Secure($_POST['id']))->getOne(T_VIDEOS);
@@ -543,6 +543,7 @@ if ($first == 'load-more-youtube')  {
 
     }
 }
+
 if ($first == 'load-more-daily')  {
     if (!empty($_POST['query']) && !empty($_POST['pageToken'])) {
         $query = PT_Secure(urlencode($_POST['query']));
@@ -609,6 +610,7 @@ if ($first == 'load-more-daily')  {
         }
     }
 }
+
 if ($first == 'import-daily-videos') {
     if (!empty($_POST['videos'])) {
         $ids = array();
@@ -680,6 +682,7 @@ if ($first == 'import-daily-videos') {
         }
     }
 }
+
 if ($first == 'import-youtube-videos') {
 
 
@@ -1384,6 +1387,22 @@ if ($first == 'delete-user-ad') {
     }
 }
 
+if ($first == 'approve-user-ad') {
+    if (!empty($_POST['id'])) {
+        $ad_data = $db->where('id',PT_Secure($_POST['id']))->getOne(T_USR_ADS);
+        if (!empty($ad_data)) {
+            $status = $_POST['status'] == 1 ? 2 : 1; // $ad_data->status == 2) ? 1 : 2;
+            $update = $db->where('id', PT_Secure($_POST['id']))->update(T_USR_ADS, ['status' => $status]);
+            if ($update) {
+                $data = array(
+                    'status' => 200,
+                    'data'   => $status
+                );
+            }
+        }
+    }
+}
+
 if ($first == 'backup') {
     $backup = PT_Backup($sql_db_host, $sql_db_user, $sql_db_pass, $sql_db_name);
     if ($backup) {
@@ -1444,7 +1463,6 @@ if ($first == 'test_backblaze') {
         }
     }
 }
-
 
 if ($first == 'testS3') {
     include_once('assets/libs/s3-lib/vendor/autoload.php');
@@ -1524,6 +1542,7 @@ if ($first == 'test_ftp') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'test_wasabi') {
 
     include_once('assets/libs/s3-lib/vendor/autoload.php');
@@ -1572,6 +1591,7 @@ if ($first == 'test_wasabi') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'test_spaces') {
     include_once('assets/libs/s3-lib/vendor/autoload.php');
     try {
@@ -1619,6 +1639,7 @@ if ($first == 'test_spaces') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'add-field') {
     if (!empty($_POST['name']) && !empty($_POST['type']) && !empty($_POST['description'])) {
         $type              = PT_Secure($_POST['type']);
@@ -2058,10 +2079,6 @@ if ($first == 'delete-announcement') {
     }
 }
 
-
-
-
-
 if ($first == 'toggle-announcement') {
     $request        = (!empty($_POST['id']) && is_numeric($_POST['id']));
     $data['status'] = 400;
@@ -2146,7 +2163,6 @@ if ($first == 'reset_apps_key') {
     $data['app_key'] = $app_key;
 }
 
-
 if ($first == 'get_lang_key' && !empty($_GET['lang_name']) && !empty($_GET['id'])) {
     $html     = '';
     $lang_key = PT_Secure($_GET['id']);
@@ -2170,7 +2186,6 @@ if ($first == 'get_lang_key' && !empty($_GET['lang_name']) && !empty($_GET['id']
     $data['status'] = 200;
     $data['html']   = $html;
 }
-
 
 if ($first == 'update_lang_key' && !empty($_POST['id_of_key'])) {
     $up_data   = array();
@@ -2233,18 +2248,21 @@ if ($first == 'add_new_lang' && !empty($_POST['lang'])) {
         }
     }
 }
+
 if ($first == "update_iso" && !empty($_POST["lang_name"]) && !empty($_POST["iso"])) {
     $lang_name = PT_Secure($_POST["lang_name"]);
     $iso = PT_Secure($_POST["iso"]);
     $db->where('lang_name',$lang_name)->update(T_LANG_ISO,array('iso' => $iso));
     $data["status"] = 200;
 }
+
 if ($first == 'update_lang_status') {
     $db->where('lang_name',PT_Secure($_POST['name']))->update(T_LANG_ISO,array('status' => PT_Secure($_POST['value'])));
     $data        = array(
         'status' => 200
     );
 }
+
 if ($first == 'update_terms_status') {
     $value = 'off';
     if ($_POST['value'] == 1) {
@@ -2309,9 +2327,6 @@ if ($first == 'get_user_ad' && !empty($_POST['id'])) {
         }
     }
 }
-
-
-
 
 if ($first == 'load-more-twitch')  {
     $videos_html = '';
@@ -2456,6 +2471,7 @@ if ($first == 'load-more-twitch')  {
         }
     }
 }
+
 if ($first == 'import-twitch-videos') {
     if (!empty($_POST['videos'])) {
         $ids = array();
@@ -2588,6 +2604,7 @@ if ($first == 'add_new_category') {
     //     $data['status'] = 200;
     // }
 }
+
 if ($first == 'get_category_langs' && !empty($_POST['lang_key'])) {
     $data['status'] = 400;
     $pt->edit_category = $db->where('lang_key',PT_Secure($_POST['lang_key']))->getOne(T_LANGS);
@@ -2596,6 +2613,7 @@ if ($first == 'get_category_langs' && !empty($_POST['lang_key'])) {
         $data['status'] = 200;
     }
 }
+
 if ($first == 'edit_category' && !empty($_POST['lang_key'])) {
 
     $data['status'] = 400;
@@ -2650,6 +2668,7 @@ if ($first == 'edit_category' && !empty($_POST['lang_key'])) {
     //     $data['status'] = 200;
     // }
 }
+
 if ($first == 'delete_category' && !empty($_POST['lang_key'])) {
     if ($_POST['lang_key'] != 'other') {
         $db->where('lang_key',PT_Secure($_POST['lang_key']))->delete(T_LANGS);
@@ -2793,6 +2812,7 @@ if ($first == 'edit_page') {
         );
     }
 }
+
 if ($first == 'select_currency') {
     if (!empty($_POST['currency']) && in_array($_POST['currency'], $pt->config->currency_array)) {
         $currency = PT_Secure($_POST['currency']);
@@ -2811,6 +2831,7 @@ if ($first == 'select_currency') {
                 'status' => 200
             );
 }
+
 if ($first == 'add_new_curreny') {
     $data = array(
                 'status' => 400
@@ -2826,6 +2847,7 @@ if ($first == 'add_new_curreny') {
     }
 
 }
+
 if ($first == 'edit_curreny') {
     if (!empty($_POST['currency']) && !empty($_POST['currency_symbol']) && in_array($_POST['currency_id'], array_keys($pt->config->currency_array))) {
         $pt->config->currency_array[$_POST['currency_id']] = PT_Secure($_POST['currency']);
@@ -2838,6 +2860,7 @@ if ($first == 'edit_curreny') {
     }
 
 }
+
 if ($first == 'remove__curreny') {
     if (!empty($_POST['currency'])) {
         if (in_array($_POST['currency'], $pt->config->currency_array)) {
@@ -2862,6 +2885,7 @@ if ($first == 'remove__curreny') {
                 'status' => 200
             );
 }
+
 if ($first == 'remove_multi_curreny') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2888,6 +2912,7 @@ if ($first == 'remove_multi_curreny') {
                 'status' => 200
             );
 }
+
 if ($first == 'remove_multi_lang') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2906,6 +2931,7 @@ if ($first == 'remove_multi_lang') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_fields') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2914,6 +2940,7 @@ if ($first == 'remove_multi_fields') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete-multi-report') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('safe','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2935,6 +2962,7 @@ if ($first == 'delete-multi-report') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_invitation') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2946,6 +2974,7 @@ if ($first == 'remove_multi_invitation') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_copy') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2957,6 +2986,7 @@ if ($first == 'remove_multi_copy') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_page') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -2968,6 +2998,7 @@ if ($first == 'remove_multi_page') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_activity') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3007,6 +3038,7 @@ if ($first == 'remove_multi_activity') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_ban') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3019,6 +3051,7 @@ if ($first == 'remove_multi_ban') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_ad') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3029,6 +3062,7 @@ if ($first == 'remove_multi_ad') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_user_ad') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3050,6 +3084,7 @@ if ($first == 'remove_multi_user_ad') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete-multi-article') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('activate','deactivate','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3102,6 +3137,7 @@ if ($first == 'delete-multi-article') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete-multi-payment') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('paid','declined','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3131,6 +3167,7 @@ if ($first == 'delete-multi-payment') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'remove_multi_category') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3145,6 +3182,7 @@ if ($first == 'remove_multi_category') {
     }
 
 }
+
 if ($first == 'remove_multi_category_') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3159,6 +3197,7 @@ if ($first == 'remove_multi_category_') {
     }
 
 }
+
 if ($first == 'remove_multi_sub_category') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3173,6 +3212,7 @@ if ($first == 'remove_multi_sub_category') {
     }
 
 }
+
 if ($first == 'remove_multi_comment') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3197,6 +3237,7 @@ if ($first == 'remove_multi_comment') {
     }
 
 }
+
 if ($first == 'remove_multi_movie') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3210,6 +3251,7 @@ if ($first == 'remove_multi_movie') {
     }
 
 }
+
 if ($first == 'delete_multi_monetization_request') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('verify','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3276,6 +3318,7 @@ if ($first == 'delete_multi_monetization_request') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete_multi_request') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('verify','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3297,6 +3340,7 @@ if ($first == 'delete_multi_request') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete-multi-videos') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('approve','disapprove','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3317,6 +3361,7 @@ if ($first == 'delete-multi-videos') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete_multi_users') {
     if (!empty($_POST['ids']) && !empty($_POST['type']) && in_array($_POST['type'], array('activate','deactivate','delete'))) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -3341,6 +3386,7 @@ if ($first == 'delete_multi_users') {
         $data = ['status' => 200];
     }
 }
+
 if ($first == 'delete_receipt') {
     if (!empty($_GET['receipt_id'])) {
         $user_id = PT_Secure($_GET['user_id']);
@@ -3369,7 +3415,6 @@ if ($first == 'delete_receipt') {
         );
     }
 }
-
 
 if ($first == 'approve_receipt') {
     if (!empty($_GET['receipt_id'])) {
@@ -4035,6 +4080,7 @@ if ($first == 'test_s3_2') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'newsletters') {
     if (!empty($_POST['subject']) && !empty($_POST['message'])) {
         $users = $db->where('newsletters',1)->get(T_USERS);
@@ -4080,9 +4126,11 @@ if ($first == 'newsletters') {
         $data['message'] = 'please check your details';
     }
 }
+
 if ($first == 'ReadNotify') {
     $db->where('recipient_id',0)->where('admin',1)->where('seen',0)->update(T_NOTIFICATIONS,array('seen' => time()));
 }
+
 if ($first == 'update_pages_seo') {
     $arr_seo = json_decode($pt->config->seo,true);
     $arr_seo[$_POST['page_name']] = array(
@@ -4095,6 +4143,7 @@ if ($first == 'update_pages_seo') {
     $data['r_page'] = $_POST['page_name'];
     $data['config_seo'] = json_encode($arr_seo);
 }
+
 if ($first == 'get_supported_coins') {
     $result = coinpayments_api_call(array('key' => $pt->config->coinpayments_public_key,
                                           'version' => '1',
@@ -4120,6 +4169,7 @@ if ($first == 'get_supported_coins') {
         exit();
     }
 }
+
 if ($first == 'remove_multi_invitation') {
     if (!empty($_POST['ids'])) {
         foreach ($_POST['ids'] as $key => $value) {
@@ -4135,6 +4185,7 @@ if ($first == 'remove_multi_invitation') {
         exit();
     }
 }
+
 if ($first == 'rm-user-invitation') {
     $data = array(
         'status' => 304
@@ -4146,6 +4197,7 @@ if ($first == 'rm-user-invitation') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'ffmpeg_debug') {
     $data['status'] = 400;
     if (!empty($_FILES['video']['tmp_name'])) {
@@ -4222,6 +4274,7 @@ if ($first == 'remove_expired') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'test_yandex') {
     if ($pt->config->yandex_storage == 'off' || empty($pt->config->yandex_secret) || empty($pt->config->yandex_key)) {
         $data['message'] = 'Please enable Yandex Cloud Storage and fill all fields.';
@@ -4273,6 +4326,7 @@ if ($first == 'test_yandex') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'test_cloud') {
     if ($pt->config->cloud_upload == 'off' || empty($pt->config->cloud_file_path) || empty($pt->config->cloud_bucket_name)) {
         $data['message'] = 'Please enable Google Cloud Storage and fill all fields.';
@@ -4312,6 +4366,7 @@ if ($first == 'test_cloud') {
         }
     }
 }
+
 if ($first == 'upload_cloud_file') {
     $data['status'] = 400;
     if (!empty($_FILES) && !empty($_FILES["cloud_file"])) {
@@ -4330,6 +4385,7 @@ if ($first == 'upload_cloud_file') {
         }
     }
 }
+
 if ($first == 'add_pro_package') {
     $data['status'] = 400;
     if (!empty($_POST['name']) && !empty($_POST['color']) && !empty($_POST['time']) && in_array($_POST['time'], array('day','week','month','year','unlimited')) && !empty($_FILES['icon']) && !empty($_FILES['night_icon']) && !empty($_POST['max_upload'])) {
@@ -4427,6 +4483,7 @@ if ($first == 'add_pro_package') {
         }
     }
 }
+
 if ($first == 'get_pro') {
     $html  = '';
     if (in_array($_POST['type'], array_keys($pt->pro_packages))) {
@@ -4436,6 +4493,7 @@ if ($first == 'get_pro') {
     $data['status'] = 200;
     $data['html']   = $html;
 }
+
 if ($first == 'update_pro_member') {
     $data['status'] = 400;
     $html           = '';
@@ -4551,6 +4609,7 @@ if ($first == 'update_pro_member') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'delete_pro_package') {
     if (!empty($_GET['id']) && is_numeric($_GET['id']) && in_array($_GET['id'], array_keys($pt->pro_packages))) {
         $link           = substr($pt->pro_packages[$_GET['id']]['night_image'], strpos($pt->pro_packages[$_GET['id']]['night_image'], 'upload/'));
@@ -4570,6 +4629,7 @@ if ($first == 'delete_pro_package') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'select_pro_model') {
     $pt->feature_type = PT_Secure($_GET['package_type']);
     foreach ($pt->pro_packages as $key => $value) {
@@ -4585,6 +4645,7 @@ if ($first == 'select_pro_model') {
     echo json_encode($data);
     exit();
 }
+
 if ($first == 'select_pro_package') {
     $data['status'] = 200;
     if (!empty($_POST['feature_type'])) {

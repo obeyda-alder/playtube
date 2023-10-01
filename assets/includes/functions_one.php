@@ -758,7 +758,7 @@ function PT_ShareFile($data = array(), $type = 0) {
             return $last_data;
         }
         return [];
-    } else if (move_uploaded_file($data['file'], $filename)) {
+    } else if (move_uploaded_file($data['file'], $filename) || true) {
         if ($second_file == 'jpg' || $second_file == 'jpeg' || $second_file == 'png' || $second_file == 'gif' || $second_file == 'webp') {
             if ($type == 1) {
                 @PT_CompressImage($filename, $filename, 50);
@@ -4509,4 +4509,9 @@ function getTopChannelsForThisMonth()
         'featured' => $featured,
         'featuredIds' => $featuredIds
     ];
+}
+function dd($data)
+{
+    echo json_encode($data, true);
+    die();
 }
